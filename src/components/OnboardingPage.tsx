@@ -24,8 +24,6 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({ session, onCompl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Transition zoom exit state and watermark animation state
-  const [showWatermark, setShowWatermark] = useState(false);
 
   // --- Seeker Fields State ---
   const [seekerName, setSeekerName] = useState(session.name || '');
@@ -281,12 +279,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({ session, onCompl
       }
 
       const updatedUser = await res.json();
-      
-      // Start exit watermark animation before completion
-      setShowWatermark(true);
-      setTimeout(() => {
-        onComplete(updatedUser);
-      }, 1500);
+      onComplete(updatedUser);
 
     } catch (err: any) {
       console.error(err);
@@ -300,34 +293,6 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({ session, onCompl
   const accentBgClass = themeAccent === 'purple' ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20' : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20';
   const accentBgMutedClass = themeAccent === 'purple' ? 'bg-purple-500/10 border-purple-500/20 text-purple-300' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300';
   const accentGlowClass = themeAccent === 'purple' ? 'shadow-[0_0_20px_rgba(168,85,247,0.15)]' : 'shadow-[0_0_20px_rgba(16,185,129,0.15)]';
-  const watermarkTextTheme = isSeeker ? 'from-purple-400 via-indigo-500 to-purple-600' : 'from-emerald-400 via-teal-500 to-amber-400';
-  const watermarkShadowGlow = isSeeker ? 'drop-shadow-[0_0_35px_rgba(168,85,247,0.4)]' : 'drop-shadow-[0_0_35px_rgba(16,185,129,0.4)]';
-
-  if (showWatermark) {
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020205] overlay-animate-in">
-        <style dangerouslySetInnerHTML={{ __html: `
-          @keyframes watermarkFadeInOut {
-            0% { transform: scale(0.85); opacity: 0; filter: blur(6px); }
-            30% { transform: scale(1); opacity: 0.95; filter: blur(0px); }
-            75% { transform: scale(1.02); opacity: 0.95; filter: blur(0px); }
-            100% { transform: scale(1.15); opacity: 0; filter: blur(8px); }
-          }
-          .watermark-animation {
-            animation: watermarkFadeInOut 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          }
-        `}} />
-        <div className="text-center watermark-animation select-none pointer-events-none">
-          <h1 className={`text-5xl md:text-7xl font-black tracking-widest bg-gradient-to-r ${watermarkTextTheme} bg-clip-text text-transparent filter ${watermarkShadowGlow} font-sora`}>
-            NEXTINCAMPUS
-          </h1>
-          <p className="text-[10px] md:text-xs font-bold text-slate-500 tracking-widest uppercase mt-4">
-            Elite Institutional Connection
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-4 py-8 overlay-animate-in">
