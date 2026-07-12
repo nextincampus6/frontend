@@ -534,7 +534,11 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/api/users/resume/download/${seekerId}/${encodeURIComponent(resumeName)}`, {
+      const targetUrl = resumeName.startsWith('/')
+        ? `${API_BASE_URL}${resumeName}`
+        : `${API_BASE_URL}/api/users/resume/download/${seekerId}/${encodeURIComponent(resumeName)}`;
+
+      const res = await fetch(targetUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -1204,7 +1208,15 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
                                       {getCollegeTier(cCollege)}
                                     </span>
                                   </div>
-                                  <span className="block text-[10px] text-slate-500 mt-0.5">{req.class}</span>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                    <span className="text-[10px] text-slate-400 font-medium">{req.class}</span>
+                                    {(req.date || req.createdAt) && (
+                                      <span className="inline-flex items-center gap-1 text-[10px] text-purple-300 font-medium px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20" title="Date requested">
+                                        <Clock className="w-3 h-3 text-purple-400 shrink-0" />
+                                        <span>Requested on {req.date || new Date(req.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
 
@@ -1224,14 +1236,14 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
                               </div>
                               <div className="p-3 rounded-xl bg-black/30 border border-white/5">
                                 <span className="block text-[9px] font-bold text-slate-500 uppercase tracking-wide mb-1">Resume</span>
-                                {req.resumeUploaded && req.resumeName ? (
+                                {(req.resumeName || req.resumeUploaded || req.seeker?.resumeName) ? (
                                   <button 
                                     type="button" 
-                                    onClick={() => handleViewResume(req.seekerId, req.resumeName)} 
+                                    onClick={() => handleViewResume(req.seekerId, req.resumeName || req.seeker?.resumeName || 'resume.pdf')} 
                                     className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-purple-400 hover:text-purple-355 transition"
                                   >
                                     <FileText className="w-3.5 h-3.5 text-rose-500" />
-                                    <span title={req.resumeName}>{getCleanFilename(req.resumeName)}</span>
+                                    <span title={req.resumeName || req.seeker?.resumeName}>{getCleanFilename(req.resumeName || req.seeker?.resumeName) || 'Resume.pdf'}</span>
                                   </button>
                                 ) : (
                                   <span className="text-[10px] text-slate-500 italic">No resume uploaded</span>
@@ -2790,9 +2802,15 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
                   <p className="text-[10px] text-slate-350 mt-0.5 font-semibold">
                     {selectedStudentReq.seeker?.targetRole || selectedStudentReq.role || 'Software Engineer Intern'} {selectedStudentReq.location && `· ${selectedStudentReq.location}`}
                   </p>
-                  <p className="text-[9px] text-slate-500 mt-0.5">
-                    {selectedStudentReq.class}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className="text-[9px] text-slate-400 font-medium">{selectedStudentReq.class}</span>
+                    {(selectedStudentReq.date || selectedStudentReq.createdAt) && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] font-bold">
+                        <Clock className="w-3 h-3 text-purple-400 shrink-0" />
+                        <span>Requested on {selectedStudentReq.date || new Date(selectedStudentReq.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -2893,13 +2911,18 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
                   <div className="p-2 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-rose-500 shrink-0" />
-                      <span className="text-white font-bold truncate max-w-[150px]" title={selectedStudentReq.resumeName}>{getCleanFilename(selectedStudentReq.resumeName) || 'resume.pdf'}</span>
+                      <span className="text-white font-bold truncate max-w-[150px]" title={selectedStudentReq.resumeName || selectedStudentReq.seeker?.resumeName}>
+                        {getCleanFilename(selectedStudentReq.resumeName || selectedStudentReq.seeker?.resumeName) || 'resume.pdf'}
+                      </span>
                     </div>
-                    {selectedStudentReq.resumeUploaded ? (
+                    {(selectedStudentReq.resumeUploaded || selectedStudentReq.resumeName || selectedStudentReq.seeker?.resumeName) ? (
                       <button
                         type="button"
                         onClick={() => {
-                          handleViewResume(selectedStudentReq.seekerId, selectedStudentReq.resumeName);
+                          handleViewResume(
+                            selectedStudentReq.seekerId,
+                            selectedStudentReq.resumeName || selectedStudentReq.seeker?.resumeName || 'resume.pdf'
+                          );
                         }}
                         className="px-2.5 py-1 rounded-lg bg-purple-650 hover:bg-purple-600 text-white text-[8px] font-bold uppercase tracking-wider transition"
                       >

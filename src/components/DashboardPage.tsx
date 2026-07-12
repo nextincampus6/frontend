@@ -272,21 +272,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ id, role, name, co
         });
         if (res.ok) {
           const data = await res.json();
-          const formatted = data.map((r: any) => ({
-            id: r.id,
-            studentName: r.seeker.name,
-            class: `${r.seeker.branch} ${r.seeker.year || '3rd Year'}, ${r.seeker.college}`,
-            company: company,
-            role: r.targetRole,
-            location: r.location || 'Remote',
-            score: '94% Match',
-            message: r.pitchMessage,
-            status: r.status,
-            seekerId: r.seekerId,
-            resumeName: r.seeker?.resumeName || '',
-            resumeUploaded: r.seeker?.resumeUploaded || false,
-            seeker: r.seeker
-          }));
+          const formatted = data.map((r: any) => {
+            const resumeNameVal = r.seeker?.resumeName || r.resumeName || '';
+            const isResumeUploaded = Boolean(resumeNameVal || r.seeker?.resumeUploaded || r.resumeUploaded);
+            const reqDateStr = r.createdAt 
+              ? new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
+              : (r.date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+            return {
+              id: r.id,
+              studentName: r.seeker?.name || 'Student',
+              class: `${r.seeker?.branch || ''} ${r.seeker?.year || '3rd Year'}, ${r.seeker?.college || ''}`.trim(),
+              company: company,
+              role: r.targetRole,
+              location: r.location || 'Remote',
+              score: '94% Match',
+              message: r.pitchMessage,
+              status: r.status,
+              seekerId: r.seekerId || r.seeker?.id,
+              date: reqDateStr,
+              createdAt: r.createdAt || new Date().toISOString(),
+              resumeName: resumeNameVal,
+              resumeUploaded: isResumeUploaded,
+              seeker: r.seeker
+            };
+          });
           setRequests(formatted);
         }
       }
@@ -531,7 +540,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ id, role, name, co
           if (prev.some((r: any) => r.id === reqData.id)) {
             return prev;
           }
-          return [reqData, ...prev];
+          const resumeNameVal = reqData.resumeName || reqData.seeker?.resumeName || '';
+          const normalizedReq = {
+            ...reqData,
+            resumeName: resumeNameVal,
+            resumeUploaded: Boolean(resumeNameVal || reqData.resumeUploaded || reqData.seeker?.resumeUploaded),
+            date: reqData.date || (reqData.createdAt ? new Date(reqData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })),
+            createdAt: reqData.createdAt || new Date().toISOString()
+          };
+          return [normalizedReq, ...prev];
         });
       }
     });
