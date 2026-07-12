@@ -156,7 +156,13 @@ export const openPdfViewerPortal = (
     </div>
   </header>
   <main class="viewer-container">
-    <iframe src="${objectUrl}#toolbar=1&navpanes=1&statusbar=1&view=FitH" title="Resume Document Viewer"></iframe>
+    <object data="${objectUrl}#toolbar=1&navpanes=1&statusbar=1&view=FitH" type="application/pdf" style="width:100%; height:100%; border:none; display:block;">
+      <embed src="${objectUrl}#toolbar=1&navpanes=1&statusbar=1&view=FitH" type="application/pdf" style="width:100%; height:100%; border:none; display:block;" />
+      <div style="padding:40px; text-align:center; color:#a1a1aa;">
+        <p style="margin-bottom:16px;">Your browser does not support inline PDF viewing.</p>
+        <a href="${objectUrl}" target="_blank" style="color:#c084fc; text-decoration:underline; font-weight:600;">Click here to open the PDF directly</a>
+      </div>
+    </object>
   </main>
 </body>
 </html>`;
