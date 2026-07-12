@@ -3,6 +3,7 @@ import {
   Activity, Briefcase, Calendar, CheckCircle, CheckSquare, Edit, FileText, Fingerprint, Globe, Lock, Network, Plus, Send, Settings, ShieldCheck, TrendingUp, X, UploadCloud, Check, Trash2, Download
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
+import { openPdfViewerPortal } from '../../services/pdfViewerService';
 
 
 const getCleanFilename = (name: string): string => {
@@ -328,21 +329,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       if (res.ok) {
         const blob = await res.blob();
         const objectUrl = URL.createObjectURL(blob);
-        const newTab = window.open(objectUrl, '_blank');
-        if (!newTab) {
-          setUploadStatus({
-            type: 'error',
-            message: 'Popup blocked. Please allow popups to view the resume.'
-          });
-          setTimeout(() => setUploadStatus(null), 4000);
-          return;
-        }
+        const newTab = window.open('', '_blank');
+        openPdfViewerPortal(newTab, objectUrl, name, 'Your Profile');
         setUploadStatus(null);
       } else {
         const file = await getFileFromDB(name);
         if (file) {
           const objectUrl = URL.createObjectURL(file);
-          window.open(objectUrl, '_blank');
+          const newTab = window.open('', '_blank');
+          openPdfViewerPortal(newTab, objectUrl, name, 'Your Profile');
           setUploadStatus(null);
         } else {
           setUploadStatus({
@@ -357,7 +352,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
       const file = await getFileFromDB(name);
       if (file) {
         const objectUrl = URL.createObjectURL(file);
-        window.open(objectUrl, '_blank');
+        const newTab = window.open('', '_blank');
+        openPdfViewerPortal(newTab, objectUrl, name, 'Your Profile');
         setUploadStatus(null);
       } else {
         setUploadStatus({

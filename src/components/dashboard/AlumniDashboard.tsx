@@ -10,6 +10,7 @@ import {
 import { MessagesTab } from './MessagesTab.js';
 import { LeaderboardTab } from './LeaderboardTab.js';
 import { API_BASE_URL } from '../../config';
+import { openPdfViewerPortal } from '../../services/pdfViewerService';
 import AppLayout from '../Layout';
 import Sidebar from '../Sidebar';
 import { MobileSidebar } from '../MobileSidebar';
@@ -520,7 +521,7 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
   // Local tab filters
   const [inboxFilter, setInboxFilter] = useState<'All' | 'Pending' | 'Accepted' | 'Referred' | 'Info' | 'Declined'>('Pending');
 
-  const handleViewResume = async (seekerId: number, resumeName: string) => {
+  const handleViewResume = async (seekerId: number, resumeName: string, candidateName?: string) => {
     if (resumeName.startsWith('http://') || resumeName.startsWith('https://')) {
       window.open(resumeName, '_blank');
       return;
@@ -529,7 +530,7 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
     // Open a blank tab synchronously to prevent popup blockers
     const newTab = window.open('', '_blank');
     if (newTab) {
-      newTab.document.write('<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#08080b;color:#a0aec0;"><div style="border:4px solid rgba(168,85,247,0.2);border-top:4px solid #a855f7;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;"></div><p style="margin-top:16px;font-size:14px;font-weight:600;">Loading Resume Preview...</p><style>@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style></div>');
+      newTab.document.write('<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;background:#08080b;color:#a0aec0;"><div style="border:4px solid rgba(168,85,247,0.2);border-top:4px solid #a855f7;border-radius:50%;width:36px;height:36px;animation:spin 1s linear infinite;"></div><p style="margin-top:16px;font-size:14px;font-weight:600;">Loading Document Portal...</p><style>@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}</style></div>');
     }
 
     try {
@@ -559,7 +560,7 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
         
         if (newTab) {
           if (resumeName.toLowerCase().endsWith('.pdf')) {
-            newTab.location.href = objectUrl;
+            openPdfViewerPortal(newTab, objectUrl, resumeName, candidateName);
           } else {
             // For non-PDF (word files), download it
             newTab.close();
@@ -1239,7 +1240,7 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
                                 {(req.resumeName || req.resumeUploaded || req.seeker?.resumeName) ? (
                                   <button 
                                     type="button" 
-                                    onClick={() => handleViewResume(req.seekerId, req.resumeName || req.seeker?.resumeName || 'resume.pdf')} 
+                                    onClick={() => handleViewResume(req.seekerId, req.resumeName || req.seeker?.resumeName || 'resume.pdf', req.studentName)} 
                                     className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-purple-400 hover:text-purple-355 transition"
                                   >
                                     <FileText className="w-3.5 h-3.5 text-rose-500" />
@@ -2921,7 +2922,8 @@ export const AlumniDashboard: React.FC<AlumniDashboardProps> = ({
                         onClick={() => {
                           handleViewResume(
                             selectedStudentReq.seekerId,
-                            selectedStudentReq.resumeName || selectedStudentReq.seeker?.resumeName || 'resume.pdf'
+                            selectedStudentReq.resumeName || selectedStudentReq.seeker?.resumeName || 'resume.pdf',
+                            selectedStudentReq.studentName || selectedStudentReq.seeker?.name
                           );
                         }}
                         className="px-2.5 py-1 rounded-lg bg-purple-650 hover:bg-purple-600 text-white text-[8px] font-bold uppercase tracking-wider transition"
